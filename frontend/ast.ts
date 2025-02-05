@@ -8,7 +8,6 @@
 export type NodeType =
     | "Program"
     | "NumericLiteral"
-    | "NullLiteral"
     | "Identifier"
     | "BinaryExpr";
 
@@ -58,12 +57,4 @@ export interface Identifier extends Expr {
 export interface NumericLiteral extends Expr {
     kind: "NumericLiteral";
     value: number;
-}
-
-/**
- * Represents a null inside the soure code.
- */
-export interface NullLiteral extends Expr {
-    kind: "NullLiteral";
-    value: "null";
 }
