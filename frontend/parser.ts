@@ -6,6 +6,7 @@ import {
     NumericLiteral,
     Program,
     Stmt,
+    VarDeclaration,
 } from "./ast.ts";
 
 import { Token, tokenize, TokenType } from "./lexer.ts";
@@ -70,7 +71,55 @@ export default class Parser {
     // Handle complex statement types
     private parse_stmt(): Stmt {
         // skip to parse_expr
-        return this.parse_expr();
+        switch (this.at().type) {
+            case TokenType.Let:
+            case TokenType.Const:
+                return this.parse_var_declaration();
+            default:
+                return this.parse_expr();
+        }
+    }
+
+    // LET IDENT;
+    // ( LET | CONST ) IDENT = EXPR;
+    parse_var_declaration(): Stmt {
+        const isConstant = this.eat().type == TokenType.Const;
+        const identifier = this.expect(
+            TokenType.Identifier,
+            "Expected identifier name following let | const keywords."
+        ).value;
+
+        if (this.at().type == TokenType.Semicolon) {
+            this.eat(); // expect semicolon
+            if (isConstant) {
+                throw "Must assigne value to constant expression. No value provided.";
+            }
+
+            return {
+                kind: "VarDeclaration",
+                identifier,
+                constant: false,
+            } as VarDeclaration;
+        }
+
+        this.expect(
+            TokenType.Equals,
+            "Expected equals token following identifier in var declaration."
+        );
+
+        const declaration = {
+            kind: "VarDeclaration",
+            value: this.parse_expr(),
+            identifier,
+            constant: isConstant,
+        } as VarDeclaration;
+
+        this.expect(
+            TokenType.Semicolon,
+            "Variable declaration statment must end with semicolon."
+        );
+
+        return declaration;
     }
 
     // Handle expressions

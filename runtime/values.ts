@@ -4,29 +4,35 @@ export interface RuntimeVal {
     type: ValueType;
 }
 
+/**
+ * Defines a value of undefined meaning
+ */
 export interface NullVal extends RuntimeVal {
     type: "null";
     value: null;
 }
 
-export function MK_NULL(): NullVal {
+export function MK_NULL() {
     return { type: "null", value: null } as NullVal;
 }
 
+export interface BooleanVal extends RuntimeVal {
+    type: "boolean";
+    value: boolean;
+}
+
+export function MK_BOOL(b = true) {
+    return { type: "boolean", value: b } as BooleanVal;
+}
+
+/**
+ * Runtime value that has access to the raw native javascript number.
+ */
 export interface NumberVal extends RuntimeVal {
     type: "number";
     value: number;
 }
 
-export function MK_NUMBER(value: number = 0): NumberVal {
-    return { type: "number", value } as NumberVal;
-}
-
-export interface BoolVal extends RuntimeVal {
-    type: "boolean";
-    value: boolean;
-}
-
-export function MK_BOOL(value: boolean = false): BoolVal {
-    return { type: "boolean", value } as BoolVal;
+export function MK_NUMBER(n = 0) {
+    return { type: "number", value: n } as NumberVal;
 }

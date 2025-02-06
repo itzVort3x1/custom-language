@@ -1,27 +1,40 @@
 import { RuntimeVal } from "./values.ts";
 
 export default class Environment {
-    private readonly parent?: Environment;
-    private readonly variables: Map<string, RuntimeVal> = new Map();
+    private parent?: Environment;
+    private variables: Map<string, RuntimeVal>;
+    private constants: Set<string>;
 
-    constructor(parentEnv?: Environment) {
-        this.parent = parentEnv;
+    constructor(parentENV?: Environment) {
+        this.parent = parentENV;
         this.variables = new Map();
+        this.constants = new Set();
     }
 
-    public declareVar(varname: string, value: RuntimeVal): RuntimeVal {
+    public declareVar(
+        varname: string,
+        value: RuntimeVal,
+        constant?: boolean
+    ): RuntimeVal {
         if (this.variables.has(varname)) {
-            throw new Error(
-                `Cannot declare variable '${varname}'. As it is already deined.`
-            );
+            throw `Cannot declare variable ${varname}. As it already is defined.`;
         }
 
         this.variables.set(varname, value);
+        if (constant) {
+            this.constants.add(varname);
+        }
         return value;
     }
 
     public assignVar(varname: string, value: RuntimeVal): RuntimeVal {
         const env = this.resolve(varname);
+
+        // Cannot assign to constant
+        if (env.constants.has(varname)) {
+            throw `Cannot reasign to variable ${varname} as it was declared constant.`;
+        }
+
         env.variables.set(varname, value);
         return value;
     }
@@ -37,7 +50,7 @@ export default class Environment {
         }
 
         if (this.parent == undefined) {
-            throw new Error(`Cannot resolve '${varname}' as it does not exist`);
+            throw `Cannot resolve '${varname}' as it does not exist.`;
         }
 
         return this.parent.resolve(varname);
