@@ -14,7 +14,7 @@ export default class Environment {
     public declareVar(
         varname: string,
         value: RuntimeVal,
-        constant?: boolean
+        constant: boolean
     ): RuntimeVal {
         if (this.variables.has(varname)) {
             throw `Cannot declare variable ${varname}. As it already is defined.`;
