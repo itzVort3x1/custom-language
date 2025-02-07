@@ -21,8 +21,10 @@ export enum TokenType {
     Semicolon,
     OpenParen, // (
     CloseParen, // )
-    OpenBrace, // [
-    CloseBrace, // ]
+    OpenBrace, // {
+    CloseBrace, // }
+    OpenBracket, // [
+    CloseBracket, // ]
     EOF, // Signified the end of file
 }
 
