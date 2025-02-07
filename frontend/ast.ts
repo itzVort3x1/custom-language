@@ -11,6 +11,10 @@ export type NodeType =
     | "VarDeclaration"
     // EXPRESSIONS
     | "AssignmentExpr"
+
+    // LITERAL / PRIMARY EXPRESSION TYPES
+    | "Property"
+    | "ObjectLiteral"
     | "NumericLiteral"
     | "Identifier"
     | "BinaryExpr";
@@ -75,4 +79,21 @@ export interface Identifier extends Expr {
 export interface NumericLiteral extends Expr {
     kind: "NumericLiteral";
     value: number;
+}
+
+/**
+ * Represents a Property like object inside the soure code.
+ */
+export interface Property extends Expr {
+    kind: "Property";
+    key: string;
+    value?: Expr;
+}
+
+/**
+ * Represents a object inside the soure code.
+ */
+export interface ObjectLiteral extends Expr {
+    kind: "ObjectLiteral";
+    properties: Property[];
 }
