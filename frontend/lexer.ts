@@ -12,11 +12,13 @@ export enum TokenType {
     // Keywords
     Let,
     Const,
+    Fn, // fn
 
     // Grouping * Operators
     BinaryOperator,
     Equals,
     Comma,
+    Dot,
     Colon,
     Semicolon,
     OpenParen, // (
@@ -24,8 +26,7 @@ export enum TokenType {
     OpenBrace, // {
     CloseBrace, // }
     OpenBracket, // [
-    CloseBracket, // ]
-    Dot, // .
+    CloseBracket, //]
     EOF, // Signified the end of file
 }
 
@@ -35,6 +36,7 @@ export enum TokenType {
 const KEYWORDS: Record<string, TokenType> = {
     let: TokenType.Let,
     const: TokenType.Const,
+    fn: TokenType.Fn,
 };
 
 // Reoresents a single token from the source-code.
@@ -63,8 +65,8 @@ function isskippable(str: string) {
 }
 
 /**
-   Return whether the character is a valid integer -> [0-9]
-   */
+ Return whether the character is a valid integer -> [0-9]
+ */
 function isint(str: string) {
     const c = str.charCodeAt(0);
     const bounds = ["0".charCodeAt(0), "9".charCodeAt(0)];
@@ -89,8 +91,7 @@ export function tokenize(sourceCode: string): Token[] {
             tokens.push(token(src.shift(), TokenType.OpenParen));
         } else if (src[0] == ")") {
             tokens.push(token(src.shift(), TokenType.CloseParen));
-        } // HANDLE BINARY OPERATORS
-        else if (src[0] == "{") {
+        } else if (src[0] == "{") {
             tokens.push(token(src.shift(), TokenType.OpenBrace));
         } else if (src[0] == "}") {
             tokens.push(token(src.shift(), TokenType.CloseBrace));
@@ -98,7 +99,8 @@ export function tokenize(sourceCode: string): Token[] {
             tokens.push(token(src.shift(), TokenType.OpenBracket));
         } else if (src[0] == "]") {
             tokens.push(token(src.shift(), TokenType.CloseBracket));
-        } else if (
+        } // HANDLE BINARY OPERATORS
+        else if (
             src[0] == "+" ||
             src[0] == "-" ||
             src[0] == "*" ||
@@ -111,14 +113,14 @@ export function tokenize(sourceCode: string): Token[] {
             tokens.push(token(src.shift(), TokenType.Equals));
         } else if (src[0] == ";") {
             tokens.push(token(src.shift(), TokenType.Semicolon));
-        } // HANDLE MULTICHARACTER KEYWORDS, TOKENS, IDENTIFIERS ETC...
-        else if (src[0] == ":") {
+        } else if (src[0] == ":") {
             tokens.push(token(src.shift(), TokenType.Colon));
         } else if (src[0] == ",") {
             tokens.push(token(src.shift(), TokenType.Comma));
         } else if (src[0] == ".") {
             tokens.push(token(src.shift(), TokenType.Dot));
-        } else {
+        } // HANDLE MULTICHARACTER KEYWORDS, TOKENS, IDENTIFIERS ETC...
+        else {
             // Handle numeric literals -> Integers
             if (isint(src[0])) {
                 let num = "";

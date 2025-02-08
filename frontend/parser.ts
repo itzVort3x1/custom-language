@@ -12,6 +12,7 @@ import {
     Property,
     Stmt,
     VarDeclaration,
+    FunctionDeclaration,
 } from "./ast.ts";
 
 import { Token, tokenize, TokenType } from "./lexer.ts";
@@ -80,9 +81,57 @@ export default class Parser {
             case TokenType.Let:
             case TokenType.Const:
                 return this.parse_var_declaration();
+            case TokenType.Fn:
+                return this.parse_fn_declaration();
             default:
                 return this.parse_expr();
         }
+    }
+
+    parse_fn_declaration(): Stmt {
+        this.eat(); // eat fn keyword
+        const name = this.expect(
+            TokenType.Identifier,
+            "Expected function name following fn keyword"
+        ).value;
+
+        const args = this.parse_args();
+        const params: string[] = [];
+        for (const arg of args) {
+            if (arg.kind !== "Identifier") {
+                console.log(arg);
+                throw "Inside function declaration expected parameters to be of type string.";
+            }
+
+            params.push((arg as Identifier).symbol);
+        }
+
+        this.expect(
+            TokenType.OpenBrace,
+            "Expected function body following declaration"
+        );
+        const body: Stmt[] = [];
+
+        while (
+            this.at().type !== TokenType.EOF &&
+            this.at().type !== TokenType.CloseBrace
+        ) {
+            body.push(this.parse_stmt());
+        }
+
+        this.expect(
+            TokenType.CloseBrace,
+            "Closing brace expected inside function declaration"
+        );
+
+        const fn = {
+            body,
+            name,
+            parameters: params,
+            kind: "FunctionDeclaration",
+        } as FunctionDeclaration;
+
+        return fn;
     }
 
     // LET IDENT;
@@ -132,17 +181,16 @@ export default class Parser {
         return this.parse_assignment_expr();
     }
 
-    parse_assignment_expr(): Expr {
-        const left = this.parse_object_expr(); // switch this out with objectExpr
+    private parse_assignment_expr(): Expr {
+        const left = this.parse_object_expr();
 
-        // Check for assignment expressions
         if (this.at().type == TokenType.Equals) {
-            this.eat();
+            this.eat(); // advance past equals
             const value = this.parse_assignment_expr();
             return {
-                kind: "AssignmentExpr",
-                assigne: left,
                 value,
+                assigne: left,
+                kind: "AssignmentExpr",
             } as AssignmentExpr;
         }
 
@@ -151,51 +199,42 @@ export default class Parser {
 
     private parse_object_expr(): Expr {
         // { Prop[] }
-        if (this.at().type != TokenType.OpenBrace) {
+        if (this.at().type !== TokenType.OpenBrace) {
             return this.parse_additive_expr();
         }
 
-        this.eat(); // eat the opening brace
+        this.eat(); // advance past open brace.
         const properties = new Array<Property>();
+
         while (this.not_eof() && this.at().type != TokenType.CloseBrace) {
             const key = this.expect(
                 TokenType.Identifier,
-                "Object literal key expected."
+                "Object literal key expected"
             ).value;
 
-            // {key} allows shorthand key: pair: pair -> key
+            // Allows shorthand key: pair -> { key, }
             if (this.at().type == TokenType.Comma) {
-                this.eat(); //advance past comma
-                properties.push({
-                    kind: "Property",
-                    key,
-                    value: undefined,
-                } as Property);
+                this.eat(); // advance past comma
+                properties.push({ key, kind: "Property" } as Property);
                 continue;
-            } else if (this.at().type == TokenType.CloseBrace) {
-                properties.push({
-                    kind: "Property",
-                    key,
-                    value: undefined,
-                } as Property);
+            } // Allows shorthand key: pair -> { key }
+            else if (this.at().type == TokenType.CloseBrace) {
+                properties.push({ key, kind: "Property" });
                 continue;
             }
 
-            // {key: val, key2: val}
+            // { key: val }
             this.expect(
                 TokenType.Colon,
                 "Missing colon following identifier in ObjectExpr"
             );
             const value = this.parse_expr();
-            properties.push({
-                kind: "Property",
-                key,
-                value,
-            } as Property);
+
+            properties.push({ kind: "Property", value, key });
             if (this.at().type != TokenType.CloseBrace) {
                 this.expect(
                     TokenType.Comma,
-                    "Expected Comma or closing bracket following property"
+                    "Expected comma or closing bracket following property"
                 );
             }
         }
@@ -247,8 +286,10 @@ export default class Parser {
         return left;
     }
 
+    // foo.x()()
     private parse_call_member_expr(): Expr {
         const member = this.parse_member_expr();
+
         if (this.at().type == TokenType.OpenParen) {
             return this.parse_call_expr(member);
         }
@@ -261,7 +302,7 @@ export default class Parser {
             kind: "CallExpr",
             caller,
             args: this.parse_args(),
-        } as unknown as CallExpr;
+        } as CallExpr;
 
         if (this.at().type == TokenType.OpenParen) {
             call_expr = this.parse_call_expr(call_expr);
@@ -270,10 +311,9 @@ export default class Parser {
         return call_expr;
     }
 
-    // fn add (x, y) {}
     private parse_args(): Expr[] {
-        this.expect(TokenType.OpenParen, "Expected opening parenthesis.");
-        const args: Expr[] =
+        this.expect(TokenType.OpenParen, "Expected open parenthesis");
+        const args =
             this.at().type == TokenType.CloseParen
                 ? []
                 : this.parse_arguments_list();
@@ -285,9 +325,8 @@ export default class Parser {
         return args;
     }
 
-    // foo(x=5, v="Bar")
     private parse_arguments_list(): Expr[] {
-        const args: Expr[] = [this.parse_assignment_expr()];
+        const args = [this.parse_assignment_expr()];
 
         while (this.at().type == TokenType.Comma && this.eat()) {
             args.push(this.parse_assignment_expr());
@@ -307,37 +346,42 @@ export default class Parser {
             let property: Expr;
             let computed: boolean;
 
-            // non-computed values aka dot.expr
+            // non-computed values aka obj.expr
             if (operator.type == TokenType.Dot) {
                 computed = false;
-                property = this.parse_primary_expr(); // get identifier
-
+                // get identifier
+                property = this.parse_primary_expr();
                 if (property.kind != "Identifier") {
-                    throw `Cannot use dot operator without right hand side being an identifier. Found: ${property.kind}`;
+                    throw `Cannonot use dot operator without right hand side being a identifier`;
                 }
             } else {
-                // This allows obj[computedValue]
+                // this allows obj[computedValue]
                 computed = true;
                 property = this.parse_expr();
                 this.expect(
                     TokenType.CloseBracket,
-                    "Missing closing bracket in computed value"
+                    "Missing closing bracket in computed value."
                 );
             }
+
             object = {
                 kind: "MemberExpr",
                 object,
                 property,
                 computed,
-            } as unknown as MemberExpr;
+            } as MemberExpr;
         }
 
         return object;
     }
 
     // Orders Of Prescidence
+    // Assignment
+    // Object
     // AdditiveExpr
     // MultiplicitaveExpr
+    // Call
+    // Member
     // PrimaryExpr
 
     // Parse Literal Values & Grouping Expressions

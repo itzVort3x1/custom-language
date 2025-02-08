@@ -1,5 +1,6 @@
 // deno-lint-ignore-file no-empty-interface
 // https://github.com/tlaceby/guide-to-interpreters-series
+
 // -----------------------------------------------------------
 // --------------          AST TYPES        ------------------
 // ---     Defines the structure of our languages AST      ---
@@ -9,12 +10,12 @@ export type NodeType =
     // STATEMENTS
     | "Program"
     | "VarDeclaration"
+    | "FunctionDeclaration"
     // EXPRESSIONS
     | "AssignmentExpr"
     | "MemberExpr"
     | "CallExpr"
-
-    // LITERAL / PRIMARY EXPRESSION TYPES
+    // Literals
     | "Property"
     | "ObjectLiteral"
     | "NumericLiteral"
@@ -44,10 +45,16 @@ export interface VarDeclaration extends Stmt {
     value?: Expr;
 }
 
+export interface FunctionDeclaration extends Stmt {
+    kind: "FunctionDeclaration";
+    parameters: string[];
+    name: string;
+    body: Stmt[];
+}
+
 /**  Expressions will result in a value at runtime unlike Statements */
 export interface Expr extends Stmt {}
 
-// let x = {foo: "bar"}
 export interface AssignmentExpr extends Expr {
     kind: "AssignmentExpr";
     assigne: Expr;
@@ -67,16 +74,16 @@ export interface BinaryExpr extends Expr {
 }
 
 export interface CallExpr extends Expr {
-    kind: "BinaryExpr";
+    kind: "CallExpr";
     args: Expr[];
     caller: Expr;
 }
 
 export interface MemberExpr extends Expr {
-    kind: "BinaryExpr";
+    kind: "MemberExpr";
     object: Expr;
     property: Expr;
-    computed: boolean; // needs to be of type BinaryOperator
+    computed: boolean;
 }
 
 // LITERAL / PRIMARY EXPRESSION TYPES
@@ -96,18 +103,12 @@ export interface NumericLiteral extends Expr {
     value: number;
 }
 
-/**
- * Represents a Property like object inside the soure code.
- */
 export interface Property extends Expr {
     kind: "Property";
     key: string;
     value?: Expr;
 }
 
-/**
- * Represents a object inside the soure code.
- */
 export interface ObjectLiteral extends Expr {
     kind: "ObjectLiteral";
     properties: Property[];
