@@ -1,99 +1,158 @@
 # Custom Programming Language
 
-Welcome to the **Custom Programming Language** project! 🚀  
-This project aims to **build a programming language** from scratch, covering **Lexing, Parsing, AST Construction, Interpretation, and Execution**.
+## Introduction
 
----
+This project is a **custom programming language** implemented from scratch, covering essential components such as **lexing, parsing, AST construction, interpretation, and execution**. The language includes support for **function declarations, variable assignments, arithmetic expressions, and native functions** like `print`.
 
-## **Table of Contents**
+## Features
 
-- [Custom Programming Language](#custom-programming-language)
-  - [**Table of Contents**](#table-of-contents)
-  - [**Introduction**](#introduction)
-  - [**Features**](#features)
-  - [**Architecture**](#architecture)
-  - [**Project Modules**](#project-modules)
-    - [📝 **1. Lexer**](#-1-lexer)
-    - [🌳 **2. AST (Abstract Syntax Tree)**](#-2-ast-abstract-syntax-tree)
-    - [🏃 **3. AST Walker \& Interpreter**](#-3-ast-walker--interpreter)
-    - [🏗 **4. User-Defined Structures \& Functions**](#-4-user-defined-structures--functions)
+-   ✅ **Lexical Analysis**: Converts source code into tokens.
+-   ✅ **Parsing & AST Construction**: Generates an Abstract Syntax Tree (AST) from tokens.
+-   ✅ **Expression Evaluation**: Supports **binary operations, assignments, and function calls**.
+-   ✅ **Variable Storage & Scope Management**: Implements **environments and variable resolution**.
+-   ✅ **Function Execution**: Supports **both native and user-defined functions**.
+-   ✅ **Object & Member Access**: Allows **custom object structures and property access**.
+-   ✅ **Interpreter Implementation**: Walks the AST and evaluates expressions dynamically.
 
----
+## Project Structure
 
-## **Introduction**
+```
+/
+├── test.txt              # Sample script written in the custom language
+├── runtime/              # Runtime implementation
+│   ├── values.ts         # Defines runtime values (numbers, objects, functions, etc.)
+│   ├── interpreter.ts    # Evaluates the AST
+│   ├── environment.ts    # Manages variable scope and function execution
+│   └── eval/             # Expression & statement evaluation
+│       ├── statements.ts # Evaluates program statements
+│       └── expressions.ts # Evaluates expressions
+├── frontend/             # Frontend implementation
+│   ├── ast.ts            # Defines AST node types
+│   ├── lexer.ts          # Tokenizer for source code
+│   └── parser.ts         # Parses tokens into an AST
+├── README.md             # Project documentation
+├── main.ts               # Entry point for executing scripts
+```
 
-This project is a **basic compiler/interpreter** for a custom programming language. It **tokenizes, parses, and evaluates** expressions using an **Abstract Syntax Tree (AST)**. The goal is to understand **how programming languages work under the hood** by implementing key language features.
+## Language Syntax & Example Code
 
----
+The language supports **function declarations, closures, variable assignments, and expressions**.
 
-## **Features**
+### Example: Function and Closure
 
-✅ **Lexical Analysis**: Converts raw source code into tokens.  
-✅ **Parsing & AST Construction**: Builds an Abstract Syntax Tree (AST) from tokens.  
-✅ **Expression Evaluation**: Handles **binary operations, assignments, and function calls**.  
-✅ **Environment & Variable Storage**: Supports **variable declarations, scopes, and assignments**.  
-✅ **Function Calls**: Implements both **native global functions** and **user-defined functions**.  
-✅ **Objects & Structures**: Supports **custom object structures and member expressions**.  
-✅ **AST Walking (Interpreter)**: Walks through the AST and evaluates expressions dynamically.
+```js
+fn makeAdder (offset) {
+  fn add (x, y)  {
+    x + y + offset
+  }
+  add
+}
 
----
+const adder = makeAdder(1);
+print(adder(10, 5)) // Output: 16
+```
 
-## **Architecture**
+### Variable Declaration
 
-The project is structured into different stages:
+```js
+let x = 10;
+const y = x + 5;
+print(y);
+```
 
-1. **Lexer (Lexical Analysis)**
+### Function Call & Built-in Functions
 
-    - Converts source code into **tokens**.
-    - Recognizes **keywords, operators, identifiers, literals, and symbols**.
+```js
+fn greet(name) {
+  print("Hello, " + name);
+}
 
-2. **Parser & AST (Abstract Syntax Tree)**
+greet("World");
+```
 
-    - Converts tokens into an **Abstract Syntax Tree**.
-    - Supports **Binary Operations, Function Calls, and Object Member Expressions**.
+## Components
 
-3. **Interpreter (AST Walker)**
-    - Traverses the AST and executes code.
-    - Implements **environments & variable storage**.
+### **1. Lexer (Lexical Analysis)**
 
----
+-   Converts raw source code into **tokens**.
+-   Recognizes **keywords, operators, identifiers, literals, and symbols**.
 
-## **Project Modules**
+### **2. Parser & AST (Abstract Syntax Tree)**
 
-### 📝 **1. Lexer**
+-   Converts tokens into an **AST representation**.
+-   Supports **expressions, function calls, and statements**.
 
--   Reads the source code and **breaks it into tokens**.
--   Recognizes **keywords (`let`), operators (`+`, `-`, `*`, `/`), and identifiers**.
--   Skips whitespace and handles **numbers & symbols**.
+### **3. Interpreter (AST Walker)**
 
-### 🌳 **2. AST (Abstract Syntax Tree)**
+-   Evaluates expressions dynamically.
+-   Implements **environments, variable storage, and function execution**.
 
--   Represents **expressions & statements** in tree format.
--   Supports:
-    -   **Binary Operations** (`+, -, *, /`)
-    -   **Assignment Expressions** (`let x = 10`)
-    -   **Function Calls** (`print(x)`)
+### **4. Environment & Scope Management**
 
-### 🏃 **3. AST Walker & Interpreter**
+-   Supports **global and local function scopes**.
+-   Implements **variable resolution and assignments**.
 
--   Walks the AST and **evaluates expressions** dynamically.
--   Implements:
-    -   **Environments & Variable Storage**
-    -   **Function Execution**
-    -   **Object Member Access (`obj.property`)**
+### **5. Native Functions**
 
-### 🏗 **4. User-Defined Structures & Functions**
+-   Built-in functions like `print()` and `time()`.
 
--   Supports **custom objects & user-defined functions**.
--   Example:
+## Running the Interpreter
 
-    ```js
-    struct Person {
-        name;
-        age;
-    }
+### Prerequisites
 
-    let p = new Person();
-    p.name = "Alice";
-    print(p.name);
-    ```
+-   **Deno** installed (required to run TypeScript code).
+
+### Running a Script
+
+To execute a script written in this language:
+
+```sh
+deno run --allow-read main.ts
+```
+
+### Running a Custom Script
+
+Modify the `test.txt` file and run:
+
+```sh
+deno run --allow-read main.ts test.txt
+```
+
+## Future Enhancements
+
+-   🏗 **Implement return statements in functions**.
+-   🏗 **Add support for string manipulation and boolean operations**.
+-   🏗 **Expand built-in functions (e.g., math operations, file handling)**.
+-   🏗 **Introduce control structures like loops and conditionals**.
+
+## Conclusion
+
+This project is a **minimal but powerful interpreter** for a custom programming language. It serves as a foundation for **understanding how programming languages work** by implementing **lexing, parsing, AST traversal, and evaluation**.
+
+## Installing Deno
+
+To run this project, you need to install **Deno**. Use the following commands based on your operating system:
+
+### Linux:
+
+```sh
+curl -fsSL https://deno.land/install.sh | sh
+```
+
+### Windows:
+
+```sh
+irm https://deno.land/install.ps1 | iex
+```
+
+### macOS:
+
+```sh
+curl -fsSL https://deno.land/install.sh | sh
+```
+
+### Verify Installation:
+
+```sh
+deno --version
+```
